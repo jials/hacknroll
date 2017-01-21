@@ -164,11 +164,11 @@ app.hears(/lvl[0-9]{1,2}|level[0-9]{1,2}|lvl [0-9]{1,2}|level [0-9]{1,2}/i, (ctx
 
 getEstimatedMinutes = (timestamp, type) => {
   const date = new Date(timestamp);
-  const now = new Date.now();
+  const now = new Date().getTime();
   if (type == 'washer') {
-    return (WAIT_TIME_WASHER - (date - now) / 1000 / 60) + "minutes";
+    return Math.round(WAIT_TIME_WASHER - (now - date) / 1000 / 60) + "minutes";
   } else {
-    return (WAIT_TIME_DRYER - (date - now) / 1000 / 60) + "minutes";
+    return Math.round(WAIT_TIME_DRYER - (now - date) / 1000 / 60) + "minutes";
   }
 }
 
@@ -192,10 +192,10 @@ getWashingMachineStatusSummaryMessage = (body, residenceOrCollege, sublocation) 
 
   let string = 'Washing & Dryer Machine @ ' + residenceOrCollege.toUpperCase() + ' ' + sublocation.toUpperCase() + '\n';
   if (washerCount > 0) string += washerCount + ' washers available\n';
-  else string += 'The next washer available in' + getEstimatedMinutes(minWasherTime, 'washer') + '\n';
+  else string += 'The next washer available in ' + getEstimatedMinutes(minWasherTime, ' washer') + '\n';
 
   if (dryerCount > 0) string += dryerCount + ' dryers available\n';
-  else string += 'The next dryer available in' + getEstimatedMinutes(minDryerTime, 'dryer') + '\n';
+  else string += 'The next dryer available in ' + getEstimatedMinutes(minDryerTime, ' dryer') + '\n';
 
   return string
 }
