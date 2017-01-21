@@ -18,9 +18,10 @@ app.get('/data', function(req, res) {
     var residence = req.query.residence;
     var laundryRoom = req.query.room;
     res.send(washingMachineStatus[residence][laundryRoom]);
+  } else {
+    // Get everything
+    res.send(washingMachineStatus);
   }
-  // Get everything
-  res.send(washingMachineStatus);
 })
 
 app.post('/data', function(req, res) {
