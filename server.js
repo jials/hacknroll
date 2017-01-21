@@ -4,6 +4,45 @@ const request=require('request');
 const app = new Telegraf(process.env.BOT_TOKEN)
 const washingMachineStatus = require('./express_main_server/washingMachineStatus.json');
 
+getSublocationForInput = (input, keywords) => {
+  for (var index in keywords) {
+    const keyword = keywords[index];
+    if (input.indexOf(keyword) > -1) {
+      const splitArr = input.split(' ');
+      for (index in splitArr) {
+        if (splitArr[index] == keyword) {
+          if (+index + 1 < splitArr.length) return splitArr[+index + 1];
+        } else if (splitArr[index].indexOf(keyword) > -1) {
+          return splitArr[index].slice(keyword.length);
+        }
+      }
+    }
+  }
+  return '';
+}
+
+getKeysForCollegeOrResidenceWithSublocation = (collegeOrResidence, sublocation, onSublocationMatched, onSublocationUnmatched) => {
+  let keys = []
+  for (var key in washingMachineStatus) {
+    if (key.toLowerCase() === collegeOrResidence) {
+      const levels = Object.keys(washingMachineStatus[key]);
+      if (levels.indexOf(sublocation) > -1) {
+        if (onSublocationMatched) onSublocationMatched();
+      } else if (levels.length > 2) {
+        if (onSublocationUnmatched) onSublocationUnmatched();
+        for (i = 0; i < levels.length; i += 3) {
+          keys.push(levels.slice(i, Math.min(i + 3, levels.length)));
+        }
+      } else {
+        if (onSublocationUnmatched) onSublocationUnmatched();
+        keys.push(levels)
+      }
+      break;
+    }
+  }
+  return keys;
+}
+
 app.command('start', (ctx) => {
   console.log('start', ctx.from)
   ctx.reply('Welcome!')
@@ -23,11 +62,18 @@ app.hears(/hi|hey|hello/i, (ctx) => {
 })
 
 app.hears(/pgp/i, (ctx) => {
-  ctx.reply('Which residence are you interested in?', Markup
-   .keyboard([
-     ['1', '2', '3'],
-     ['4', '5', '6']
-   ])
+  const residence = ctx.match[0]
+  let sublocation = getSublocationForInput(ctx.match.input, ['r'])
+  let keys = getKeysForCollegeOrResidenceWithSublocation(
+    residence, 'R' + sublocation,
+    () => { ctx.reply('DATA RETRIEVED FOR R') },
+    () => {}
+  )
+
+  if (keys.length == 0) return;
+
+  ctx.reply('Which residence are you interested in ' + residence.toUpperCase() + '?', Markup
+   .keyboard(keys)
    .oneTime()
    .resize()
    .extra()
@@ -35,23 +81,20 @@ app.hears(/pgp/i, (ctx) => {
 })
 
 app.hears(/tembusu|cinnamon|capt|rc4/i, (ctx) => {
-  const college = ctx.match[0]
-  let keys = []
-  for (var key in washingMachineStatus) {
-    if (key.toLowerCase() === college) {
-      const levels = Object.keys(washingMachineStatus[key]);
-      if (levels.length > 2) {
-        for (i = 0; i < levels.length; i += 3) {
-          keys.push(levels.slice(i, Math.min(i + 3, levels.length)));
-        }
-      } else {
-        keys.push(levels)
-      }
-      break;
-    }
-  }
+  const input = ctx.match.input.toLowerCase();
+  const college = ctx.match[0];
 
-  ctx.reply('Which floor are you interested in?', Markup
+  const level = getSublocationForInput(input, ['lvl', 'level']);
+
+  const keys = getKeysForCollegeOrResidenceWithSublocation(
+    college, "Level " + level,
+    () => { ctx.reply('DATA FOR LEVEL RETRIEVED') },
+    () => { if (level != '') ctx.reply('Laundry is not available at that level.') }
+  )
+
+  if (keys.length == 0) return;
+
+  ctx.reply('Which floor are you interested in ' + college.toUpperCase() + '?', Markup
    .keyboard(keys)
    .oneTime()
    .resize()
