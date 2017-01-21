@@ -8,7 +8,7 @@ app.command('start', (ctx) => {
   ctx.reply('Welcome!')
 })
 
-app.hears('hi', (ctx) => {
+app.hears((/hi|hey|hello/i), (ctx) => {
   ctx.reply('Hey there! Which residence are you staying in?', Markup
    .keyboard([
      'PGP',
@@ -21,7 +21,7 @@ app.hears('hi', (ctx) => {
  )
 })
 
-app.hears('PGP', (ctx) => {
+app.hears(/pgp/i, (ctx) => {
   ctx.reply('Which residence are you interested in?', Markup
    .keyboard([
      ['1', '2', '3'],
