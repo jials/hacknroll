@@ -16,13 +16,16 @@ app.get('/data', function(req, res) {
   // Sample query: /data?residence=PGP&room=R1
   if (!_.isEmpty(req.query)) {
     var residence = req.query.residence;
-    if (!residence == 'rvrc') {
+    if (residence != 'rvrc' && residence != 'utown residences') {
+      console.log('1')
       var laundryRoom = req.query.room;
       res.send(washingMachineStatus[residence][laundryRoom]);
-    } else if (residence == 'rvrc'){
+    } else if (residence == 'rvrc' || residence == 'utown residences') {
+      console.log('2')
       // RVRC only has one laundry room
       res.send(washingMachineStatus[residence]);
     } else {
+      console.log('3')
       res.status(404).send('Not Found!');
     }
   }

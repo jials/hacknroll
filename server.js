@@ -201,10 +201,14 @@ getWashingMachineStatusSummaryMessage = (body, residenceOrCollege, sublocation) 
 }
 
 getWashingMachineStatus = (residence, room, onerror, onsuccess) => {
+  console.log('http://localhost:3000/data?residence=' + escape(residence) + '&room=' + escape(room))
   request('http://localhost:3000/data?residence=' + escape(residence) + '&room=' + escape(room),
     (err,res,body) => {
       if (err) onerror();
       else if(res.statusCode == 200 ) onsuccess(body);
+      else {
+        // console.log(res)
+      }
   });
 }
 
