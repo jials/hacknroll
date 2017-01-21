@@ -19,9 +19,11 @@ app.get('/data', function(req, res) {
     if (!residence == 'rvrc') {
       var laundryRoom = req.query.room;
       res.send(washingMachineStatus[residence][laundryRoom]);
-    } else {
+    } else if (residence == 'rvrc'){
       // RVRC only has one laundry room
       res.send(washingMachineStatus[residence]);
+    } else {
+      res.status(404).send('Not Found!');
     }
   }
 })
