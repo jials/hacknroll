@@ -25,10 +25,6 @@
       "Dryer": [0, 0, 0, 0]
     }
   },
-  "RVRC": {
-    "Washer": [0, 0, 0, 0],
-    "Dryer": [0, 0, 0, 0]
-  },
   "Cinnamon": {
     "Level 9": {
       "Washer": [0, 0, 0, 0],
@@ -92,6 +88,10 @@
       "Washer": [0, 0, 0, 0],
       "Dryer": [0, 0, 0, 0]
     }
+  },
+  "RVRC": {
+    "Washer": [0, 0, 0, 0],
+    "Dryer": [0, 0, 0, 0]
   },
   "UTown Residences": {
     "Washer": [0, 0, 0, 0],
