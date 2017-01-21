@@ -1,6 +1,6 @@
 var express = require('express')
 var app = express()
-
+var washingMachineStatus = require('./washingMachineStatus.json');
 var data = {}
 
 app.get('/', function (req, res) {
@@ -8,7 +8,7 @@ app.get('/', function (req, res) {
 })
 
 app.get('/data', function(req, res) {
-  res.send(data);
+  res.send(washingMachineStatus);
 })
 
 app.post('/data', function(req, res) {
