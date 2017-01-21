@@ -4,14 +4,7 @@ not available.) Once the WiFi module is available, the arduino will directly sen
 
 Self-created protocol
 ---------------------------
-Location: PGP R4
-Number_of_washers_free: 2
-Number_of_washers_occupied: 2
-Occupied_washers_estimated_time_left: [12, 1]
-Number_of_dryers_occupied: 2
-Number_of_dryers_occupied: 2
-Occupied_washers_estimated_time_left: [30, 23]
-
+Location: PGP R4; Washers_state: 0, 1, 0, 0 (where FREE == 0, BUSY == 1)
 
 
 """
@@ -26,7 +19,7 @@ class Parser(object):
 	def parse(data):
 		"""Return a dict of parsed data. Parsing is done according to the protocol described above"""
 		result = {}
-		data_array = data.split('\n')
+		data_array = data.strip().split('; ')
 		for datum in data_array:
 			key, value = datum.split(': ')
 			result[key] = value
