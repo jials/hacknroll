@@ -16,11 +16,13 @@ app.get('/data', function(req, res) {
   // Sample query: /data?residence=PGP&room=R1
   if (!_.isEmpty(req.query)) {
     var residence = req.query.residence;
-    var laundryRoom = req.query.room;
-    res.send(washingMachineStatus[residence][laundryRoom]);
-  } else {
-    // Get everything
-    res.send(washingMachineStatus);
+    if (!residence == 'rvrc') {
+      var laundryRoom = req.query.room;
+      res.send(washingMachineStatus[residence][laundryRoom]);
+    } else {
+      // RVRC only has one laundry room
+      res.send(washingMachineStatus[residence]);
+    }
   }
 })
 
