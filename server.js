@@ -48,24 +48,24 @@ app.command('start', (ctx) => {
   ctx.reply('Welcome!')
 })
 
-app.hears(/hi|hey|hello/i, (ctx) => {
-  ctx.reply('Hey there! Which residence are you staying in?', Markup
-   .keyboard([
-      ['PGP', 'RVRC'], // Row1 with 2 button
-      ['Cinnamon', 'Tembusu'], // Row2 with 2 button
-      ['CAPT', 'RC4', 'UTown Residences'] // Row3 with 3 button
-    ])
-   .oneTime()
-   .resize()
-   .extra()
- )
-})
+// app.hears(/hi|hey|hello/i, (ctx) => {
+//   ctx.reply('Hey there! Which residence are you staying in?', Markup
+//    .keyboard([
+//       ['PGP', 'RVRC'], // Row1 with 2 button
+//       ['Cinnamon', 'Tembusu'], // Row2 with 2 button
+//       ['CAPT', 'RC4', 'UTown Residences'] // Row3 with 3 button
+//     ])
+//    .oneTime()
+//    .resize()
+//    .extra()
+//  )
+// })
 
 app.hears(/pgp/i, (ctx) => {
-  const residence = ctx.match[0]
+  const residence = ctx.match[0].toLowerCase();
   let sublocation = getSublocationForInput(ctx.match.input, ['r'])
   let keys = getKeysForCollegeOrResidenceWithSublocation(
-    residence, 'R' + sublocation,
+    residence, 'r' + sublocation,
     () => { ctx.reply('DATA RETRIEVED FOR R') },
     () => {}
   )
@@ -82,13 +82,18 @@ app.hears(/pgp/i, (ctx) => {
 
 app.hears(/tembusu|cinnamon|capt|rc4/i, (ctx) => {
   const input = ctx.match.input.toLowerCase();
-  const college = ctx.match[0];
+  const college = ctx.match[0].toLowerCase();
 
   const level = getSublocationForInput(input, ['lvl', 'level']);
-
+  const sublocation = "level " + level;
   const keys = getKeysForCollegeOrResidenceWithSublocation(
-    college, "Level " + level,
-    () => { ctx.reply('DATA FOR LEVEL RETRIEVED') },
+    college, sublocation,
+    () => {
+      getWashingMachineStatus(college, sublocation,
+        () => {  },
+        (body) => { ctx.reply(body) }
+      )
+    },
     () => { if (level != '') ctx.reply('Laundry is not available at that level.') }
   )
 
@@ -103,24 +108,26 @@ app.hears(/tembusu|cinnamon|capt|rc4/i, (ctx) => {
 })
 
 app.hears(/rvrc|utown residences/i, (ctx) => {
-  const residence = ctx.match[0]
+  const residence = ctx.match[0].toLowerCase();
   for (var key in washingMachineStatus) {
     if (key.toLowerCase() === residence) {
-      //TODO call API
-      const washers = washingMachineStatus[key]["Washer"];
-      const dryers = washingMachineStatus[key]["Dryer"];
-      ctx.reply(JSON.stringify(washers) + JSON.stringify(dryers))
+      getWashingMachineStatus(residence, '',
+        () => {  },
+        (body) => { ctx.reply(body) }
+      )
       break;
     }
   }
 });
 
-app.hears('abcd', (ctx) => {
-  request('http://localhost:3000/data', (err,res,body) => {
-    if (err) ctx.reply('error');
-    else if(res.statusCode == 200 ) ctx.reply(body);
+getWashingMachineStatus = (residence, room, onerror, onsuccess) => {
+  console.log('http://localhost:3000/data?residence=' + escape(residence) + '&room=' + escape(room))
+  request('http://localhost:3000/data?residence=' + escape(residence) + '&room=' + escape(room),
+    (err,res,body) => {
+      if (err) onerror();
+      else if(res.statusCode == 200 ) onsuccess(body);
   });
-})
+}
 
 app.on('sticker', (ctx) => ctx.reply('👍'))
 
