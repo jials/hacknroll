@@ -38,8 +38,12 @@ app.post('/data', function(req, res) {
   var data = req.body
   res.send(data);
   var residence = _.findKey(data);
-  var laundryRoom = _.findKey(data[residence]);
-  washingMachineStatus[residence][laundryRoom] = data[residence][laundryRoom];
+  if (data[residence] != null) {
+      var laundryRoom = _.findKey(data[residence]);
+      washingMachineStatus[residence][laundryRoom] = data[residence][laundryRoom];
+  } else {
+    washingMachineStatus[residence] = data[residence];
+  }
   console.log(JSON.stringify(washingMachineStatus));
 })
 
