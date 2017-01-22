@@ -33,7 +33,7 @@ void loop() {
     
     delay(1000); // so that readline from python is executed first
     
-    Serial.print("Location: PGP R4; Washer_states: ");
+    Serial.print("Location: pgp r4; Washer_states: ");
     for (int i = 0; i < 4; i++) {
       if (i > 0) {
         Serial.print(", ");
