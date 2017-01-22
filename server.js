@@ -162,6 +162,12 @@ app.hears(/lvl[0-9]{1,2}|level[0-9]{1,2}|lvl [0-9]{1,2}|level [0-9]{1,2}/i, (ctx
   )
 })
 
+app.hears(/.*/, (ctx)=>{
+  let rand = Math.random();
+  if (rand > 0.5) ctx.reply('Wah very chim leh, auntie don\'t understand ah');
+  else ctx.reply('Oi, can you speak English ah?');
+})
+
 getEstimatedMinutes = (timestamp, type) => {
   const date = new Date(timestamp);
   const now = new Date().getTime();
