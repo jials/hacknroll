@@ -7,6 +7,23 @@ const washingMachineStatus = require('./express_main_server/washingMachineStatus
 const WAIT_TIME_WASHER = 45;
 const WAIT_TIME_DRYER = 40;
 
+const latLng = {
+  "pgp": {
+    "r1": [1.291464, 103.782633],
+    "r2": [1.290810, 103.781260],
+    "r3": [1.291572, 103.780182],
+    "r4": [1.291245, 103.779792],
+    "r5": [1.290585, 103.780321],
+    "r6": [1.290515, 103.781861]
+  },
+  "rvrc": [1.298225, 103.776263],
+  "capt": [1.307695, 103.773246],
+  "rc4": [1.308226, 103.773406],
+  "utown residences": [1.305193, 103.773891],
+  "tembusu": [1.306274, 103.773760],
+  "cinnamon": [1.306685, 103.773514]
+}
+
 getSublocationForInput = (input, keywords) => {
   for (var index in keywords) {
     const keyword = keywords[index];
@@ -75,26 +92,39 @@ app.hears(/pgp/i, (ctx) => {
   ctx.session.residenceOrCollege = residence;
   let sublocation = getSublocationForInput(ctx.match.input, ['r'])
   ctx.session.sublocation = 'r' + sublocation;
-  let keys = getKeysForCollegeOrResidenceWithSublocation(
-    residence, 'r' + sublocation,
+  proceedWithKeys(sublocation, 'r', residence, ctx)
+})
+
+proceedWithKeys = (sublocation, sublocationPrefix, residence, ctx) => {
+  const keys = getKeysForCollegeOrResidenceWithSublocation(
+    residence, sublocationPrefix + sublocation,
     () => {
-      getWashingMachineStatus(residence, 'r' + sublocation,
+      getWashingMachineStatus(residence, sublocationPrefix + sublocation,
         () => {  },
         (body) => { ctx.reply(getWashingMachineStatusSummaryMessage(body, ctx.session.residenceOrCollege, ctx.session.sublocation)) }
       )
     },
-    () => { if (sublocation != '') ctx.reply('There is no R' + sublocation + ' in ' + residence.toUpperCase()) }
+    () => { if (sublocation != '') ctx.reply('There is no laundry ' + sublocationPrefix.toUpperCase() + sublocation + ' in ' + residence.toUpperCase()) }
   )
 
   if (keys.length == 0) return;
 
-  ctx.reply('Which residence are you interested in ' + residence.toUpperCase() + '?', Markup
-   .keyboard(keys)
-   .oneTime()
-   .resize()
-   .extra()
-  )
-})
+  if (residence == 'pgp') {
+    ctx.reply('Which residence are you interested in ' + residence.toUpperCase() + '?', Markup
+     .keyboard(keys)
+     .oneTime()
+     .resize()
+     .extra()
+    )
+  } else {
+    ctx.reply('Which floor are you interested in ' + residence.toUpperCase() + '?', Markup
+     .keyboard(keys)
+     .oneTime()
+     .resize()
+     .extra()
+    )
+  }
+}
 
 app.hears(/tembusu|cinnamon|capt|rc4/i, (ctx) => {
   const input = ctx.match.input.toLowerCase();
@@ -102,42 +132,19 @@ app.hears(/tembusu|cinnamon|capt|rc4/i, (ctx) => {
   ctx.session.residenceOrCollege = college;
 
   const level = getSublocationForInput(input, ['lvl', 'level']);
-  const sublocation = "level " + level;
-  ctx.session.sublocation = sublocation;
-  const keys = getKeysForCollegeOrResidenceWithSublocation(
-    college, sublocation,
-    () => {
-      getWashingMachineStatus(college, sublocation,
-        () => {  },
-        (body) => { ctx.reply(getWashingMachineStatusSummaryMessage(body, ctx.session.residenceOrCollege, ctx.session.sublocation)) }
-      )
-    },
-    () => { if (level != '') ctx.reply('Laundry is not available at that level.') }
-  )
-
-  if (keys.length == 0) return;
-
-  ctx.reply('Which floor are you interested in ' + college.toUpperCase() + '?', Markup
-   .keyboard(keys)
-   .oneTime()
-   .resize()
-   .extra()
-  )
+  const sublocation = level;
+  ctx.session.sublocation = "level " + sublocation;
+  proceedWithKeys(sublocation, 'level ', college, ctx)
 })
 
 app.hears(/rvrc|utown residences/i, (ctx) => {
   const residence = ctx.match[0].toLowerCase();
   ctx.session.residenceOrCollege = residence;
   ctx.session.sublocation = '';
-  for (var key in washingMachineStatus) {
-    if (key.toLowerCase() === residence) {
-      getWashingMachineStatus(residence, '',
-        () => {  },
-        (body) => { ctx.reply(getWashingMachineStatusSummaryMessage(body, ctx.session.residenceOrCollege, ctx.session.sublocation)) }
-      )
-      break;
-    }
-  }
+  getWashingMachineStatus(residence, '',
+    () => {  },
+    (body) => { ctx.reply(getWashingMachineStatusSummaryMessage(body, ctx.session.residenceOrCollege, ctx.session.sublocation)) }
+  )
 });
 
 app.hears(/r[1-6]/i, (ctx)=>{
@@ -219,5 +226,48 @@ getWashingMachineStatus = (residence, room, onerror, onsuccess) => {
 }
 
 app.on('sticker', (ctx) => ctx.reply('👍'))
+
+getDistance = (latLng1, latLng2) => {
+  return Math.sqrt(Math.pow(latLng1[0] - latLng2[0], 2) + Math.pow(latLng1[1] - latLng2[1], 2));
+}
+
+app.on('location', (ctx) => {
+  const location = ctx.update.message.location;
+  const lat = location.latitude;
+  const lng = location.longitude;
+  let minDistance = 99;
+  let nearestResidence = '';
+  let nearestSublocation = '';
+  for (var residence in latLng) {
+    if (residence == 'pgp') {
+      for (var sublocation in latLng[residence]) {
+        const distance = getDistance(latLng[residence][sublocation], [lat, lng]);
+        if (distance < minDistance) {
+          minDistance = distance;
+          nearestResidence = 'pgp';
+          nearestSublocation = sublocation;
+        }
+      }
+    } else {
+      const distance = getDistance(latLng[residence], [lat, lng]);
+      if (distance < minDistance) {
+        minDistance = distance;
+        nearestResidence = residence;
+        nearestSublocation = '';
+      }
+    }
+  }
+
+  ctx.session.residenceOrCollege = nearestResidence;
+  ctx.session.sublocation = nearestSublocation;
+  if (nearestResidence == 'utown residences' || nearestResidence == 'rvrc') {
+    getWashingMachineStatus(nearestResidence, '',
+      () => {  },
+      (body) => { ctx.reply(getWashingMachineStatusSummaryMessage(body, ctx.session.residenceOrCollege, ctx.session.sublocation)) }
+    )
+  } else if (nearestResidence != '') {
+    proceedWithKeys(nearestSublocation, '', nearestResidence, ctx)
+  }
+})
 
 app.startPolling()
