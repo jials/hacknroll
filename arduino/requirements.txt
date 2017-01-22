@@ -1,4 +1,5 @@
 pyFirmata==1.0.3
 pymata-aio==2.16
 pyserial==2.7
+requests==2.12.5
 websockets==3.2
