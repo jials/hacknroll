@@ -15,10 +15,10 @@ app.get('/', function (req, res) {
 app.get('/data', function(req, res) {
   // Sample query: /data?residence=PGP&room=R1
   if (!_.isEmpty(req.query)) {
-    var residence = req.query.residence;
+    var residence = req.query.residence.toLowerCase();
     if (residence != 'rvrc' && residence != 'utown residences') {
-      console.log('1')
-      var laundryRoom = req.query.room;
+      var laundryRoom = req.query.room.toLowerCase();
+      console.log(req.query.room);
       res.send(washingMachineStatus[residence][laundryRoom]);
     } else if (residence == 'rvrc' || residence == 'utown residences') {
       console.log('2')
@@ -28,6 +28,9 @@ app.get('/data', function(req, res) {
       console.log('3')
       res.status(404).send('Not Found!');
     }
+  } else {
+    // return the whole array if no filtering is requested
+    res.send(washingMachineStatus);
   }
 })
 
