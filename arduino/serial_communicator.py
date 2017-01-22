@@ -10,6 +10,7 @@ Location: PGP R4; Washers_state: 0, 1, 0, 0 (where FREE == 0, BUSY == 1)
 """
 import serial
 import time
+import json
 import requests
 
 device_path = '/dev/ttyACM0'
@@ -35,8 +36,8 @@ while True:
 	prev_washer_states, curr_washer_states = [None] * 2
 	ser.write(b'b')  # write any 1-letter to ask arduino to send data
 	raw_data = ser.readline()
-	data = raw_data.decode('utf-8')
-	parsed_data = Parser.parse(data)
+	data_for_server = raw_data.decode('utf-8')
+	parsed_data = Parser.parse(data_for_server)
 
 	curr_washer_states = parsed_data['washer_states']
 
@@ -54,13 +55,15 @@ while True:
 
 	location, sublocation = parsed_data['location'].split(' ')
 
-	data, subdata = {}, {}
-	subdata[sublocation] = {
-		'washers': washers_time_started,
-		'dryers': washers_time_started
+	data_for_server, subdata_for_server = {}, {}
+	subdata_for_server[sublocation] = {
+		'washer': washers_time_started,
+		'dryer': washers_time_started
 	}
-	data[location] = subdata
+	data_for_server[location] = subdata_for_server
 
-	resp = requests.post('http://localhost:3000/data', data)
+	print(data_for_server)
+
+	resp = requests.post('http://localhost:3000/data', json=data_for_server)
 	resp.raise_for_status()  # check if request is successful
 	time.sleep(10)
