@@ -36,10 +36,14 @@ app.get('/data', function(req, res) {
 
 app.post('/data', function(req, res) {
   var data = req.body
+//  console.log(data);
   res.send(data);
-  var residence = _.findKey(data);
-  if (data[residence] != null) {
-      var laundryRoom = _.findKey(data[residence]);
+  var residence = _.findKey(data).toLowerCase();
+//  console.log(residence);
+//  console.log(data[residence]);
+  if (residence != "rvrc" && residence != "utown residences") {
+      var laundryRoom = _.findKey(data[residence])
+//      console.log(laundryRoom);
       washingMachineStatus[residence][laundryRoom] = data[residence][laundryRoom];
   } else {
     washingMachineStatus[residence] = data[residence];
