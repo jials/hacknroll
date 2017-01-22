@@ -10,6 +10,7 @@ Location: PGP R4; Washers_state: 0, 1, 0, 0 (where FREE == 0, BUSY == 1)
 """
 import serial
 import time
+import json
 import requests
 
 device_path = '/dev/ttyACM0'
@@ -56,8 +57,8 @@ while True:
 
 	data, subdata = {}, {}
 	subdata[sublocation] = {
-		'washers': washers_time_started,
-		'dryers': washers_time_started
+		'Washer': washers_time_started,
+		'Dryer': washers_time_started
 	}
 	data[location] = subdata
 
